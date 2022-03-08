@@ -102,7 +102,7 @@ def ln_aprox():
     -14.516971195056682948719125661717,
     1.0
     ]
-    interval = list(np.arange(1/numpy.sqrt(2), numpy.sqrt(2), 0.1))
+    interval = list(np.arange(1/numpy.sqrt(2), numpy.sqrt(2), 0.01))
     for x in interval:
         z = (x-1)/(x+1)
         print(f"z = {z}")
@@ -121,6 +121,7 @@ if __name__ == '__main__':
     # print(u)
     # addition()
     # a,b,c = numere_inmultite_non_asociative()
+    # print(f"(a * b) * c, a * (b * c) = {(a * b) * c}, {a * (b * c)}")
     # sin_aprox()
     # cos_aprox()
     ln_aprox()
