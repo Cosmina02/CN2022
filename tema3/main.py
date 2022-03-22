@@ -50,14 +50,14 @@ class RareMatrix:
     def __pow__(self, power, modulo=None):
         new_dict = {}
         for i in self.rare_values.keys():
-            # element1 = self.rare_values[i]
+            print(i)
             element2={}
             for col in range(0, self.n):
                 s = 0
                 for j in self.rare_values.keys():
                     if col in self.rare_values[j] and col in self.rare_values[i].keys() and i in self.rare_values[col].keys():
                         s += self.rare_values[i][col] * self.rare_values[col][i]
-               element2[col] = s
+                element2[col] = s
             new_dict[i]=element2
         return RareMatrix(new_dict,self.n)
 
