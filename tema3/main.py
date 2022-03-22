@@ -1,10 +1,57 @@
 import urllib.request  # the lib that handles the url stuff
 
 
-class RareMatrix(object):
-    rare_values = {}
+class RareMatrix:
+
+    def __init__(self, rare_values=None):
+        if rare_values is None:
+            rare_values = {}
+        self.rare_values = rare_values
+
+    def __add__(self, other):
+        # un dict copie cu val din self
+        # daca exista cheile in b le adunam,daca nu ramane asa
+        # daca exista i in b dar nu si j adaugam la dict de i cheia j din b
+        # apoi adaugam i urile din b care nu exista in a
+
+        print("am intrat")
+        addition = self.rare_values
+        for key_i in addition.keys():
+            exists = False
+            for key_j in addition[key_i].keys():
+                if key_i in other.rare_values.keys():
+                    if key_j in other.rare_values[key_i].keys():
+                        addition[key_i][key_j] += other.rare_values[key_i][key_j]
+                    else:
+                        exists = True
+            if exists is True:
+                values_i = other.rare_values[key_i]
+                for some_key in values_i:
+                    if some_key not in addition[key_i].keys():
+                        addition[key_i][some_key] = values_i[some_key]
+        for key_i in other.rare_values.keys():
+            if key_i not in addition.keys():
+                addition[key_i] = other.rare_values
+        return RareMatrix(addition)
+
+    def __eq__(self, other):
+        for key_i in self.rare_values.keys():
+            for key_j in self.rare_values[key_i].keys():
+                if key_i in other.rare_values.keys():
+                    if key_j in other.rare_values[key_i].keys():
+                        if self.rare_values[key_i][key_j] != other.rare_values[key_i][key_j]:
+                            return False
+                    else:
+                        return False
+                else:
+                    return False
+        return True
+
+    def __pow__(self, power, modulo=None):
+
+
     @classmethod
-    def from_url(self,url):
+    def from_url(self, url):
         dictionary1 = {}
         index = -1
         dictionary2 = {}
@@ -29,8 +76,8 @@ class RareMatrix(object):
                 else:
                     dictionary2[j] = valoare
                 dictionary2[j] = valoare
-        self.rare_values = dictionary1
-        return self.rare_values
+        return RareMatrix(dictionary1)
+
 
 if __name__ == '__main__':
     urls = {
@@ -39,8 +86,12 @@ if __name__ == '__main__':
         "a_plus_b": "https://profs.info.uaic.ro/~ancai/CN/lab/3/a_plus_b.txt",
         "a_ori_a": "https://profs.info.uaic.ro/~ancai/CN/lab/3/a_ori_a.txt"
     }
-    # a = RareMatrix.from_url(urls["a"])
+    a = RareMatrix.from_url(urls["a"])
     b = RareMatrix.from_url(urls["b"])
-    # a_plus_b = RareMatrix.from_url(urls["a_plus_b"])
+    a_plus_b = RareMatrix.from_url(urls["a_plus_b"])
     # a_ori_a = RareMatrix.from_url(urls["a_ori_a"])
-    print(b)
+    c = a + b
+    print(c==a_plus_b)
+    print(c.rare_values[100])
+    # print(a.rare_values[0])
+    # print("type(a)= ",type(a)," type(b)= ",type(b)," type(c)= ",type(c))
