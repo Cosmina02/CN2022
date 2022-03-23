@@ -51,15 +51,25 @@ class RareMatrix:
         new_dict = {}
         for i in self.rare_values.keys():
             print(i)
-            element2={}
-            for col in range(0, self.n):
+            element2 = {}
+            for col in range(1, self.n + 1):
                 s = 0
-                for j in self.rare_values.keys():
-                    if col in self.rare_values[j] and col in self.rare_values[i].keys() and i in self.rare_values[col].keys():
-                        s += self.rare_values[i][col] * self.rare_values[col][i]
-                element2[col] = s
-            new_dict[i]=element2
-        return RareMatrix(new_dict,self.n)
+                for i2 in self.rare_values.keys():
+                    if col in self.rare_values[i2] and col in self.rare_values[i]:
+                        s += self.rare_values[i2][col] * self.rare_values[i][col]
+                if s != 0:
+                    element2[col] = s
+                    new_dict[i] = element2
+            # for col in range(1, self.n+1):
+            #     s = 0
+            #     for j in self.rare_values.keys():
+            #         if col in self.rare_values[j] and col in self.rare_values[i].keys() and i in self.rare_values[
+            #             col].keys():
+            #             s += self.rare_values[i][col] * self.rare_values[col][i]
+            #     if s!=0:
+            #         element2[col] = s
+            #         new_dict[i] = element2
+        return RareMatrix(new_dict, self.n)
 
     @classmethod
     def from_url(self, url):
@@ -102,12 +112,49 @@ if __name__ == '__main__':
         "a_plus_b": "https://profs.info.uaic.ro/~ancai/CN/lab/3/a_plus_b.txt",
         "a_ori_a": "https://profs.info.uaic.ro/~ancai/CN/lab/3/a_ori_a.txt"
     }
-    a = RareMatrix.from_url(urls["a"])
+    # a = RareMatrix.from_url(urls["a"])
     # b = RareMatrix.from_url(urls["b"])
     # a_plus_b = RareMatrix.from_url(urls["a_plus_b"])
-    a_ori_a = RareMatrix.from_url(urls["a_ori_a"])
-    c = a ** 2
-    print(c==a_ori_a)
+    # a_ori_a = RareMatrix.from_url(urls["a_ori_a"])
+    a = {
+        1: {
+            3: 1,
+            4: 2
+        },
+        2: {
+            2: 3
+        },
+        3: {
+            1: 2
+        },
+        4: {
+            3: 1,
+            4: 1
+        }
+    }
+
+    a_ori_a =  {
+        1: {
+            1: 2,
+            3: 2,
+            4: 2
+        },
+        2: {
+            2: 9
+        },
+        3: {
+            3: 2,
+            4: 4
+        },
+        4: {
+            1: 2,
+            3: 1,
+            4: 1
+        }
+    }
+    c = RareMatrix(a,4) ** 2
+    print(c.rare_values)
+    print(c == RareMatrix(a_ori_a,4))
     # print(c == a_plus_b)
     # print(c.rare_values[100])
     # print(a.rare_values[0])
