@@ -53,16 +53,32 @@ class RareMatrix:
         else:
             return False
 
+    def getColumn(self,col):
+        dict = {}
+        for i in self.rare_values.keys():
+            if  col in self.rare_values[i].keys():
+                dict[i] = self.rare_values[i][col]
+        return dict
+
+    def getTranspusa(self):
+        dict = {}
+        for i in range(0, self.n):
+            temp = self.getColumn(i)
+            if temp != {}:
+                dict[i] = temp
+        return dict
+
     def __pow__(self, power, modulo=None):
         new_dict = {}
-        for i in self.rare_values.keys():
-            # print(i)
+        transpusa = self.getTranspusa()
+        for i in self.rare_values.keys(): # itereaza prin cheile i
+            print(i)
             element2 = {}
-            for col in range(0, self.n):
+            for col in range(0,self.n):
                 s = 0
-                for i2 in range(0, self.n):
-                    if i2 in self.rare_values[i] and col in self.rare_values[i2]:
-                        s += self.rare_values[i][i2] * self.rare_values[i2][col]
+                for k in range(0,self.n):
+                    if k in transpusa[col].keys() and k in self.rare_values[i].keys():
+                        s += self.rare_values[i][k] * transpusa[col][k]
                 if s != 0:
                     element2[col] = s
                     new_dict[i] = element2
@@ -110,57 +126,65 @@ if __name__ == '__main__':
     # b = RareMatrix.from_url(urls["b"])
     # a_plus_b = RareMatrix.from_url(urls["a_plus_b"])
     a_ori_a = RareMatrix.from_url(urls["a_ori_a"])
-    # a = {
-    #
-    #     1: {
-    #         1: 3
-    #     },
-    #
-    #     3: {
-    #         2: 1,
-    #         3: 1
-    #     },
-    #     0: {
-    #         2: 1,
-    #         3: 2
-    #     },
-    #     4: {
-    #         1: 2,
-    #         4: 2
-    #     } ,
-    #     2: {
-    #         0: 2
-    #     }
-    # }
-    #
-    # a_ori_a = {
-    #     0: {
-    #         0: 2,
-    #         2: 2,
-    #         3: 2
-    #     },
-    #     1: {
-    #         1: 9
-    #     },
-    #     2: {
-    #         2: 2,
-    #         3: 4
-    #     },
-    #     3: {
-    #         0: 2,
-    #         2: 1,
-    #         3: 1
-    #     },
-    #     4: {
-    #         1: 10,
-    #         4: 4
-    #     }
-    # }
-    print("a=",a.rare_values)
+    b = {
+        0: {
+            2: 1,
+            3: 2
+        },
+        1: {
+            1: 3,
+            5: 1
+        },
+        2: {
+            0: 2
+        },
+        3: {
+            2: 1,
+            3: 1
+        },
+        4: {
+            1: 2,
+            4: 2
+        },
+        5: {
+            5: 1
+        }
+    }
+
+    b_ori_b = {
+        0: {
+            0: 2,
+            2: 2,
+            3: 2
+        },
+        1: {
+            1: 9,
+            5: 4
+        },
+        2: {
+            2: 2,
+            3: 4
+        },
+        3: {
+            0: 2,
+            2: 1,
+            3: 1
+        },
+        4: {
+            1: 10,
+            4: 4,
+            5: 2
+        },
+        5: {
+            5: 1
+        }
+    }
     c = a ** 2
-    print(c.rare_values)
-    print(c == a_ori_a)
-    # print(c == a_plus_b)
-    # print(c.rare_values[100])
-    # print(a.rare_values[0])
-    # print("type(a)= ",type(a)," type(b)= ",type(b)," type(c)= ",type(c))
+    # print(c.rare_values)
+    # print(c == a_ori_a)
+    print(c.rare_values[5])
+    print(a_ori_a.rare_values[5])
+
+    # c = RareMatrix(b,6) ** 2
+    # print(c.rare_values)
+    # print(c == RareMatrix(b_ori_b,6))
