@@ -78,7 +78,7 @@ class RareMatrix:
                 s = 0
                 for k in range(0,self.n):
                     if k in transpusa[col].keys() and k in self.rare_values[i].keys():
-                        s += self.rare_values[i][k] * transpusa[col][k]
+                        s = s + self.rare_values[i][k] * transpusa[col][k]
                 if s != 0:
                     element2[col] = s
                     new_dict[i] = element2
