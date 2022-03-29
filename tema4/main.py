@@ -1,94 +1,30 @@
 import urllib.request
+import numpy as np
+
+global eps
 
 
 class RareMatrix:
 
-    def __init__(self, n=None, rare_values=None):
+    def __init__(self, n=None, rare_values=None, diagonal=None):
         if rare_values is None and n is None:
             rare_values = {}
             n = 0
+        if rare_values is not None and n is not None and diagonal is None:
+            diagonal = {}
+            for i in range(0, n):
+                if i in rare_values[i].keys():
+                    diagonal[i] = rare_values[i][i]
+        self.d = diagonal
         self.rare_values = rare_values
         self.n = n
-
-    def __add__(self, other):
-        # un dict copie cu val din self
-        # daca exista cheile in b le adunam,daca nu ramane asa
-        # daca exista i in b dar nu si j adaugam la dict de i cheia j din b
-        # apoi adaugam i urile din b care nu exista in a
-        addition = self.rare_values
-        for key_i in addition.keys():
-            exists = False
-            for key_j in addition[key_i].keys():
-                if key_i in other.rare_values.keys():
-                    if key_j in other.rare_values[key_i].keys():
-                        addition[key_i][key_j] += other.rare_values[key_i][key_j]
-                    else:
-                        exists = True
-            if exists is True:
-                values_i = other.rare_values[key_i]
-                for some_key in values_i:
-                    if some_key not in addition[key_i].keys():
-                        addition[key_i][some_key] = values_i[some_key]
-        for key_i in other.rare_values.keys():
-            if key_i not in addition.keys():
-                addition[key_i] = other.rare_values
-        return RareMatrix(addition)
-
-    def __eq__(self, other):
-        if len(self.rare_values.keys()) == len(other.rare_values.keys()):
-            for key_i in self.rare_values.keys():
-                if len(self.rare_values[key_i]) == len(other.rare_values[key_i]):
-                    for key_j in self.rare_values[key_i].keys():
-                        if key_i in other.rare_values.keys():
-                            if key_j in other.rare_values[key_i].keys():
-                                if self.rare_values[key_i][key_j] != other.rare_values[key_i][key_j]:
-                                    return False
-                            else:
-                                return False
-                        else:
-                            return False
-                    return True
-                else:
-                    return False
-        else:
-            return False
-
-    def getColumn(self, col):
-        dict = {}
-        for i in self.rare_values.keys():
-            if col in self.rare_values[i].keys():
-                dict[i] = self.rare_values[i][col]
-        return dict
-
-    def getTranspusa(self):
-        dict = {}
-        for i in range(0, self.n):
-            temp = self.getColumn(i)
-            if temp != {}:
-                dict[i] = temp
-        return dict
-
-    def __pow__(self, power, modulo=None):
-        new_dict = {}
-        transpusa = self.getTranspusa()
-        for i in self.rare_values.keys():  # itereaza prin cheile i
-            print(i)
-            element2 = {}
-            for col in range(0, self.n):
-                s = 0
-                for k in range(0, self.n):
-                    if k in transpusa[col].keys() and k in self.rare_values[i].keys():
-                        s = s + self.rare_values[i][k] * transpusa[col][k]
-                if s != 0:
-                    element2[col] = s
-                    new_dict[i] = element2
-        return RareMatrix(new_dict, self.n)
 
     @classmethod
     def from_url(self, url):
         dictionary1 = {}
         index = -1
         dictionary2 = {}
+        diagonal = {}
         for line in urllib.request.urlopen(url):
             line = line.decode('utf-8')
             if line.find(",") != -1:
@@ -96,9 +32,11 @@ class RareMatrix:
                 valoare = float(splitter[0])
                 i = int(splitter[1])
                 j = int(splitter[2])
+                if i == j:
+                    diagonal[i] = valoare
                 if index == -1:
                     index = i
-                elif index != i:
+                elif index != i or index == n-1:
                     dictionary1[index] = dictionary2
                     dictionary2 = {}
                     index = i
@@ -112,7 +50,7 @@ class RareMatrix:
             else:
                 if line[:-2] != '':
                     n = int(line)
-        return RareMatrix(n, dictionary1)
+        return RareMatrix(n, dictionary1, diagonal)
 
 
 class ColumnVector:
@@ -136,13 +74,65 @@ class ColumnVector:
 
 
 class LinearSystem:
-    def __init__(self, a, b):
+    def __init__(self, a: RareMatrix, b: ColumnVector):
         self.a = a
         self.b = b
 
+    def null_diagonal(self, a: RareMatrix):
+        for i in range(0, a.n):
+            if a.d[i] < eps:
+                return False
+        return True
+
     def solve_jacobi(self):
-        print("work in progress")
+        if not self.null_diagonal(self.a):
+            print("The matrix is not valid,it has null elements on the diagonal")
+        else:
+            x = []
+            x_c = np.zeros(self.a.n)
+            x_p = np.zeros(self.a.n)
+            kmax = 10000
+            k = 0
+            while True:
+                x_p = x_c
+                for i in range(0, self.a.n):
+                    suma1 = 0
+                    suma2 = 0
+                    for j in self.a.rare_values[i].keys():
+                        if j < i:
+                            suma1 = suma1 + self.a.rare_values[i][j] * x_p[j]
+                        if j > i and j in self.a.rare_values.keys() and i in self.a.rare_values[j].keys():
+                            suma2 = suma2 + self.a.rare_values[j][i] * x_p[j]
+                    x_i = (self.b.values[i] - suma1 - suma2) / self.a.d[i]
+                    x_c[i] = x_i
+                delta = np.linalg.norm(x_c - x_p)
+                k += 1
+                if delta >= eps and delta <= 10 ** 8 and k <= kmax:
+                    continue
+                else:
+                    break
+            if delta < eps:
+                return x_c
+            else:
+                return "Divergenta"
+        # print("work in progress")
+
 
 if __name__ == '__main__':
-    url = "https://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt"
-    b = ColumnVector.from_url(url)
+    eps = 10 ** (-15)
+    # url = "https://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt"
+    # b = ColumnVector.from_url(url)
+    a = RareMatrix(5, {
+        0: {0: 102.5},
+        1: {1: 104.88},
+        2: {0: 2.5, 1: 1.05, 2: 100.0},
+        3: {3: 101.3},
+        4: {0: 0.73, 1: 0.33, 3: 1.5, 4: 102.23}
+    })
+    b = ColumnVector(5, [6.0, 7.0, 8.0, 9.0, 1.0])
+    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt")
+    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt")
+    ls = LinearSystem(c, d)
+    # print(c.n)
+    # print(c.rare_values[54320])
+    print(len(ls.solve_jacobi()))
