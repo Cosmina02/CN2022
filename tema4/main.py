@@ -36,7 +36,7 @@ class RareMatrix:
                     diagonal[i] = valoare
                 if index == -1:
                     index = i
-                elif index != i or index == n-1:
+                elif index != i or index == n - 1:
                     dictionary1[index] = dictionary2
                     dictionary2 = {}
                     index = i
@@ -88,31 +88,33 @@ class LinearSystem:
         if not self.null_diagonal(self.a):
             print("The matrix is not valid,it has null elements on the diagonal")
         else:
-            x = []
             x_c = np.zeros(self.a.n)
             x_p = np.zeros(self.a.n)
             kmax = 10000
             k = 0
             while True:
-                x_p = x_c
                 for i in range(0, self.a.n):
                     suma1 = 0
                     suma2 = 0
-                    for j in range(0, self.a.n):
-                        if j < i and j in self.a.rare_values[i].keys():
-                            suma1 +=  self.a.rare_values[i][j] * x_p[j]
-                        if j > i and j in self.a.rare_values.keys() and i in self.a.rare_values[j].keys():
-                            suma2 +=  self.a.rare_values[j][i] * x_p[j]
+                    for j in self.a.rare_values[i].keys():
+                        if j != i:
+                            suma1 += self.a.rare_values[i][j] * x_p[j]
+                    for j in range(i + 1, self.a.n):
+                        if i in self.a.rare_values[j].keys():
+                            suma2 += self.a.rare_values[j][i] * x_p[j]
+
                     x_i = (self.b.values[i] - suma1 - suma2) / self.a.d[i]
                     x_c[i] = x_i
                 delta = np.linalg.norm(x_c - x_p)
                 k += 1
-                if (delta >= eps or k == 1) and delta <= 10 ** 8 and k <= kmax:
+                x_p = x_c
+                if delta >= eps and delta <= 10 ** 8 and k <= kmax:
                     continue
                 else:
-                    print("aici ",delta)
-                    print("aici ", delta >= eps)
-                    print("aici ", eps)
+                    # print("aici ", delta)
+                    # print("aici ", delta >= eps)
+                    # print("aici ", eps)
+                    print("k= ",k)
                     break
             if delta < eps:
                 return x_c
@@ -135,6 +137,7 @@ if __name__ == '__main__':
     b = ColumnVector(5, [6.0, 7.0, 8.0, 9.0, 1.0])
     c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt")
     d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt")
+    # ls = LinearSystem(a, b)
     ls = LinearSystem(c, d)
     # print(c.n)
     # print(c.rare_values[54320])
