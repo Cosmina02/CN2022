@@ -98,18 +98,21 @@ class LinearSystem:
                 for i in range(0, self.a.n):
                     suma1 = 0
                     suma2 = 0
-                    for j in self.a.rare_values[i].keys():
-                        if j < i:
-                            suma1 = suma1 + self.a.rare_values[i][j] * x_p[j]
+                    for j in range(0, self.a.n):
+                        if j < i and j in self.a.rare_values[i].keys():
+                            suma1 +=  self.a.rare_values[i][j] * x_p[j]
                         if j > i and j in self.a.rare_values.keys() and i in self.a.rare_values[j].keys():
-                            suma2 = suma2 + self.a.rare_values[j][i] * x_p[j]
+                            suma2 +=  self.a.rare_values[j][i] * x_p[j]
                     x_i = (self.b.values[i] - suma1 - suma2) / self.a.d[i]
                     x_c[i] = x_i
                 delta = np.linalg.norm(x_c - x_p)
                 k += 1
-                if delta >= eps and delta <= 10 ** 8 and k <= kmax:
+                if (delta >= eps or k == 1) and delta <= 10 ** 8 and k <= kmax:
                     continue
                 else:
+                    print("aici ",delta)
+                    print("aici ", delta >= eps)
+                    print("aici ", eps)
                     break
             if delta < eps:
                 return x_c
@@ -135,4 +138,4 @@ if __name__ == '__main__':
     ls = LinearSystem(c, d)
     # print(c.n)
     # print(c.rare_values[54320])
-    print(len(ls.solve_jacobi()))
+    print(ls.solve_jacobi())
