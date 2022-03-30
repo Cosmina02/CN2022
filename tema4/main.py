@@ -82,7 +82,8 @@ class LinearSystem:
 
     def null_diagonal(self, a: RareMatrix):
         for i in range(0, a.n):
-            if a.d[i] < eps:
+            if abs(a.d[i]) < eps:
+                print("i=", i)
                 return False
         return True
 
@@ -102,6 +103,13 @@ class LinearSystem:
                     for j in self.a.rare_values[i].keys():
                         if j != i:
                             suma1 += self.a.rare_values[i][j] * x_p[j]
+                    # astea inainte sa intre in while,le avem pregatite de la inceput \/
+                    # facem o functie care face o lista de tuple de genu(j,i,valoare) neaparat j>i
+                    # sau o lista de liste unde prima lista ne da poz j iar in a doua lista avem tuple(i,valoare) pt j>i
+
+                    # alta idee cand e iteratia 1 il lasam sa ruleze asa si
+                    # pastram undeva toate valorile pe care le foloseste(in ordine)
+                    # la urmatoarele iteratii se foloseste de valorile alea,in ordine :)))
                     for j in range(i + 1, self.a.n):
                         if i in self.a.rare_values[j].keys():
                             suma2 += self.a.rare_values[j][i] * x_p[j]
@@ -110,14 +118,14 @@ class LinearSystem:
                     x_c[i] = x_i
                 delta = np.linalg.norm(x_c - x_p)
                 k += 1
-                print("k= ",k-1,"x_p= ",x_p,"\nx_c= ",x_c)
+                print("k= ", k - 1, "x_p= ", x_p, "\nx_c= ", x_c)
                 if delta >= eps and delta <= 10 ** 8 and k <= kmax:
                     continue
                 else:
                     # print("aici ", delta)
                     # print("aici ", delta >= eps)
                     # print("aici ", eps)
-                    print("k= ",k)
+                    print("k= ", k)
                     break
             if delta < eps:
                 return x_c
@@ -138,8 +146,8 @@ if __name__ == '__main__':
         4: {0: 0.73, 1: 0.33, 3: 1.5, 4: 102.23}
     })
     b = ColumnVector(5, [6.0, 7.0, 8.0, 9.0, 1.0])
-    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt")
-    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt")
+    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt")
+    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt")
     # ls = LinearSystem(a, b)
     start = time.time()
     ls = LinearSystem(c, d)
@@ -147,5 +155,10 @@ if __name__ == '__main__':
     # print(c.rare_values[54320])
     print(ls.solve_jacobi())
     end = time.time()
-    print("Execution time: ",end-start)
-
+    temp = end - start
+    print(temp)
+    hours = temp // 3600
+    temp = temp - 3600 * hours
+    minutes = temp // 60
+    seconds = temp - 60 * minutes
+    print("Execution time: '%d:%d:%d'" % (hours, minutes, seconds))
