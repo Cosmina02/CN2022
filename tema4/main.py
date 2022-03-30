@@ -2,7 +2,9 @@ import copy
 import time
 import urllib.request
 import numpy as np
-import plotly.express as px
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
 global eps
 
 
@@ -80,6 +82,12 @@ class LinearSystem:
         self.a = a
         self.b = b
 
+    @classmethod
+    def from_url(self, url_a, url_b):
+        a = RareMatrix.from_url(url_a)
+        b = ColumnVector.from_url(url_b)
+        return LinearSystem(a, b)
+
     def null_diagonal(self, a: RareMatrix):
         for i in range(0, a.n):
             if abs(a.d[i]) < eps:
@@ -88,15 +96,16 @@ class LinearSystem:
         return True
 
     def solve_jacobi(self):
+        eps = 10 ** (-15)
         if not self.null_diagonal(self.a):
             print("The matrix is not valid,it has null elements on the diagonal")
         else:
             x_c = np.zeros(self.a.n)
             x_p = np.zeros(self.a.n)
-            deltas=list()
+            deltas = list()
             kmax = 10000
             k = 0
-            xs=list()
+            xs = list()
             values = [0 for _ in range(0, self.a.n)]
             while True:
                 x_p = copy.deepcopy(x_c)
@@ -135,22 +144,29 @@ class LinearSystem:
             else:
                 return "Divergenta"
 
-import plotly.graph_objs as go
 
-def plot_matrix_evolution(evo, title):
+def plot_report(x, deltas, k, xs):
+    if x == "Divergenta":
+        return "Divergenta"
+    x1 = [i for i in range(0, k)]
+    y = deltas
+    fig = make_subplots(
+        rows=2, cols=1,
+        subplot_titles=("delta_x evolution over iterations", "x distribution")
+    )
+    fig.add_trace(go.Scatter(x=x1, y=y), row=1, col=1)
+
+    fig.update_xaxes(title_text="iteration", row=1, col=1)
+    fig.update_yaxes(title_text="delta_x", row=2, col=1)
     window_length = 1
-    fig = go.Figure()
-    # for step in range(len(evo)):
-    #     fig.add_trace(px.histrogram(z=evo[step][::-1],colorscale="RdBu",zmid=0))
-    fig = px.histogram(evo)
+    for step in range(len(xs)):
+        fig.add_trace(go.Histogram(x=xs[step]), row=2, col=1)
     fig.data[0].visible = True
     steps = []
     for i in range(len(fig.data)):
         step = dict(
             method="update",
-            args=[{"visible": [False] * len(fig.data)},
-                  {"title": title},
-                  ],
+            args=[{"visible": [False] * len(fig.data)}, ],
             label=str(window_length * i))
         step["args"][0]["visible"][i] = True
         steps.append(step)
@@ -162,35 +178,56 @@ def plot_matrix_evolution(evo, title):
     )]
 
     fig.update_layout(sliders=sliders)
-
     fig.show()
+
 
 if __name__ == '__main__':
     eps = 10 ** (-15)
-    # url = "https://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt"
-    # b = ColumnVector.from_url(url)
-    a = RareMatrix(5, {
-        0: {0: 102.5},
-        1: {1: 104.88},
-        2: {0: 2.5, 1: 1.05, 2: 100.0},
-        3: {3: 101.3},
-        4: {0: 0.73, 1: 0.33, 3: 1.5, 4: 102.23}
-    })
-    b = ColumnVector(5, [6.0, 7.0, 8.0, 9.0, 1.0])
-    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt")
-    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt")
-    # ls = LinearSystem(a, b)
+    ls = LinearSystem.from_url(
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt",
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt"
+    )
+    print(f"Dimensiunea sistemului este {ls.a.n}")
     start = time.time()
-    ls = LinearSystem(c, d)
-    # print(c.n)
-    # print(c.rare_values[54320])
-    x,deltas,k,xs=ls.solve_jacobi()
-    # end = time.time()
-    # temp = end - start
-    # # print(temp)
-    # hours = temp // 3600
-    # temp = temp - 3600 * hours
-    # minutes = temp // 60
-    # seconds = temp - 60 * minutes
-    # print("Execution time: '%d:%d:%d'" % (hours, minutes, seconds))
-    plot_matrix_evolution(xs,"XS-uri")
+    x, deltas, k, xs = ls.solve_jacobi()
+    plot_report(x, deltas, k, xs)
+    end = time.time()
+    temp = end - start
+    hours = temp // 3600
+    temp = temp - 3600 * hours
+    minutes = temp // 60
+    seconds = temp - 60 * minutes
+    print("Execution time: '%d:%d:%d'" % (hours, minutes, seconds))
+
+    ls = LinearSystem.from_url(
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_2.txt",
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_2.txt"
+    )
+    print(f"Dimensiunea sistemului este {ls.a.n}")
+    x, deltas, k, xs = ls.solve_jacobi()
+    plot_report(x, deltas, k, xs)
+
+    ls = LinearSystem.from_url(
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt",
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt"
+    )
+    print(f"Dimensiunea sistemului este {ls.a.n}")
+    x, deltas, k, xs = ls.solve_jacobi()
+    plot_report(x, deltas, k, xs)
+
+    ls = LinearSystem.from_url(
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_4.txt",
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_4.txt"
+    )
+    print(f"Dimensiunea sistemului este {ls.a.n}")
+    x, deltas, k, xs = ls.solve_jacobi()
+    plot_report(x, deltas, k, xs)
+
+    ls = LinearSystem.from_url(
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_5.txt",
+        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_5.txt"
+    )
+    print(f"Dimensiunea sistemului este {ls.a.n}")
+    x, deltas, k, xs = ls.solve_jacobi()
+    plot_report(x, deltas, k, xs)
+    print(x)
