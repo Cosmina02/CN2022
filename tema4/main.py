@@ -1,3 +1,5 @@
+import copy
+import time
 import urllib.request
 import numpy as np
 
@@ -93,6 +95,7 @@ class LinearSystem:
             kmax = 10000
             k = 0
             while True:
+                x_p = copy.deepcopy(x_c)
                 for i in range(0, self.a.n):
                     suma1 = 0
                     suma2 = 0
@@ -107,7 +110,7 @@ class LinearSystem:
                     x_c[i] = x_i
                 delta = np.linalg.norm(x_c - x_p)
                 k += 1
-                x_p = x_c
+                print("k= ",k-1,"x_p= ",x_p,"\nx_c= ",x_c)
                 if delta >= eps and delta <= 10 ** 8 and k <= kmax:
                     continue
                 else:
@@ -138,7 +141,11 @@ if __name__ == '__main__':
     c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt")
     d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt")
     # ls = LinearSystem(a, b)
+    start = time.time()
     ls = LinearSystem(c, d)
     # print(c.n)
     # print(c.rare_values[54320])
     print(ls.solve_jacobi())
+    end = time.time()
+    print("Execution time: ",end-start)
+
