@@ -2,7 +2,7 @@ import copy
 import time
 import urllib.request
 import numpy as np
-
+import plotly.express as px
 global eps
 
 
@@ -93,8 +93,10 @@ class LinearSystem:
         else:
             x_c = np.zeros(self.a.n)
             x_p = np.zeros(self.a.n)
+            deltas=list()
             kmax = 10000
             k = 0
+            xs=list()
             values = [0 for _ in range(0, self.a.n)]
             while True:
                 x_p = copy.deepcopy(x_c)
@@ -104,13 +106,6 @@ class LinearSystem:
                     for j in self.a.rare_values[i].keys():
                         if j != i:
                             suma1 += self.a.rare_values[i][j] * x_p[j]
-                    # astea inainte sa intre in while,le avem pregatite de la inceput \/
-                    # facem o functie care face o lista de tuple de genu(j,i,valoare) neaparat j>i
-                    # sau o lista de liste unde prima lista ne da poz j iar in a doua lista avem tuple(i,valoare) pt j>i
-
-                    # alta idee cand e iteratia 1 il lasam sa ruleze asa si
-                    # pastram undeva toate valorile pe care le foloseste(in ordine)
-                    # la urmatoarele iteratii se foloseste de valorile alea,in ordine :)))
                     if k == 0:
                         val = []
                         for j in range(i + 1, self.a.n):
@@ -121,28 +116,54 @@ class LinearSystem:
                         values[i] = val
                     else:
                         for val in values[i]:
-                            # print(val)
                             suma2 += val[1] * x_p[val[0]]
 
                     x_i = (self.b.values[i] - suma1 - suma2) / self.a.d[i]
                     x_c[i] = x_i
                 delta = np.linalg.norm(x_c - x_p)
+                deltas.append(delta)
+                xs.append(x_c)
                 k += 1
-                print("k= ", k - 1, "x_p= ", x_p, "\nx_c= ", x_c)
+                # print("k= ", k - 1, "x_p= ", x_p, "\nx_c= ", x_c)
                 if delta >= eps and delta <= 10 ** 8 and k <= kmax:
                     continue
                 else:
-                    # print("aici ", delta)
-                    # print("aici ", delta >= eps)
-                    # print("aici ", eps)
-                    print("k= ", k)
+                    # print("k= ", k)
                     break
             if delta < eps:
-                return x_c
+                return x_c, deltas, k, xs
             else:
                 return "Divergenta"
-        # print("work in progress")
 
+import plotly.graph_objs as go
+
+def plot_matrix_evolution(evo, title):
+    window_length = 1
+    fig = go.Figure()
+    # for step in range(len(evo)):
+    #     fig.add_trace(px.histrogram(z=evo[step][::-1],colorscale="RdBu",zmid=0))
+    fig = px.histogram(evo)
+    fig.data[0].visible = True
+    steps = []
+    for i in range(len(fig.data)):
+        step = dict(
+            method="update",
+            args=[{"visible": [False] * len(fig.data)},
+                  {"title": title},
+                  ],
+            label=str(window_length * i))
+        step["args"][0]["visible"][i] = True
+        steps.append(step)
+
+    sliders = [dict(
+        active=0,
+        pad={"t": 5},
+        steps=steps
+    )]
+
+    fig.update_layout(sliders=sliders)
+
+    fig.show()
 
 if __name__ == '__main__':
     eps = 10 ** (-15)
@@ -156,19 +177,20 @@ if __name__ == '__main__':
         4: {0: 0.73, 1: 0.33, 3: 1.5, 4: 102.23}
     })
     b = ColumnVector(5, [6.0, 7.0, 8.0, 9.0, 1.0])
-    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt")
-    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt")
+    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt")
+    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt")
     # ls = LinearSystem(a, b)
     start = time.time()
     ls = LinearSystem(c, d)
     # print(c.n)
     # print(c.rare_values[54320])
-    print(ls.solve_jacobi())
-    end = time.time()
-    temp = end - start
-    # print(temp)
-    hours = temp // 3600
-    temp = temp - 3600 * hours
-    minutes = temp // 60
-    seconds = temp - 60 * minutes
-    print("Execution time: '%d:%d:%d'" % (hours, minutes, seconds))
+    x,deltas,k,xs=ls.solve_jacobi()
+    # end = time.time()
+    # temp = end - start
+    # # print(temp)
+    # hours = temp // 3600
+    # temp = temp - 3600 * hours
+    # minutes = temp // 60
+    # seconds = temp - 60 * minutes
+    # print("Execution time: '%d:%d:%d'" % (hours, minutes, seconds))
+    plot_matrix_evolution(xs,"XS-uri")
