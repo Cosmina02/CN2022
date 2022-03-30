@@ -95,6 +95,7 @@ class LinearSystem:
             x_p = np.zeros(self.a.n)
             kmax = 10000
             k = 0
+            values = [0 for _ in range(0, self.a.n)]
             while True:
                 x_p = copy.deepcopy(x_c)
                 for i in range(0, self.a.n):
@@ -110,9 +111,18 @@ class LinearSystem:
                     # alta idee cand e iteratia 1 il lasam sa ruleze asa si
                     # pastram undeva toate valorile pe care le foloseste(in ordine)
                     # la urmatoarele iteratii se foloseste de valorile alea,in ordine :)))
-                    for j in range(i + 1, self.a.n):
-                        if i in self.a.rare_values[j].keys():
-                            suma2 += self.a.rare_values[j][i] * x_p[j]
+                    if k == 0:
+                        val = []
+                        for j in range(i + 1, self.a.n):
+                            if i in self.a.rare_values[j].keys():
+                                tup = (j, self.a.rare_values[j][i])
+                                val.append(tup)
+                                suma2 += self.a.rare_values[j][i] * x_p[j]
+                        values[i] = val
+                    else:
+                        for val in values[i]:
+                            # print(val)
+                            suma2 += val[1] * x_p[val[0]]
 
                     x_i = (self.b.values[i] - suma1 - suma2) / self.a.d[i]
                     x_c[i] = x_i
@@ -146,8 +156,8 @@ if __name__ == '__main__':
         4: {0: 0.73, 1: 0.33, 3: 1.5, 4: 102.23}
     })
     b = ColumnVector(5, [6.0, 7.0, 8.0, 9.0, 1.0])
-    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt")
-    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt")
+    c = RareMatrix.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/a_1.txt")
+    d = ColumnVector.from_url("http://profs.info.uaic.ro/~ancai/CN/lab/4/b_1.txt")
     # ls = LinearSystem(a, b)
     start = time.time()
     ls = LinearSystem(c, d)
@@ -156,7 +166,7 @@ if __name__ == '__main__':
     print(ls.solve_jacobi())
     end = time.time()
     temp = end - start
-    print(temp)
+    # print(temp)
     hours = temp // 3600
     temp = temp - 3600 * hours
     minutes = temp // 60
