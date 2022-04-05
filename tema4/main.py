@@ -133,7 +133,7 @@ class LinearSystem:
                 deltas.append(delta)
                 xs.append(x_c)
                 k += 1
-                # print("k= ", k - 1, "x_p= ", x_p, "\nx_c= ", x_c)
+                print("k= ", k - 1, "x_p= ", x_p, "\nx_c= ", x_c)
                 if delta >= eps and delta <= 10 ** 8 and k <= kmax:
                     continue
                 else:
@@ -142,12 +142,12 @@ class LinearSystem:
             if delta < eps:
                 return x_c, deltas, k, xs
             else:
-                return "Divergenta"
+                return "Divergenta",deltas,k,xs
 
 
 def plot_report(x, deltas, k, xs):
-    if x == "Divergenta":
-        return "Divergenta"
+    # if x == "Divergenta":
+    #     return "Divergenta"
     x1 = [i for i in range(0, k)]
     y = deltas
     fig = make_subplots(
@@ -158,9 +158,14 @@ def plot_report(x, deltas, k, xs):
 
     fig.update_xaxes(title_text="iteration", row=1, col=1)
     fig.update_yaxes(title_text="delta_x", row=2, col=1)
+
     window_length = 1
     for step in range(len(xs)):
-        fig.add_trace(go.Histogram(x=xs[step]), row=2, col=1)
+        fig.add_trace(go.Histogram(x=xs[step],xbins=dict(
+        start=-10000,
+        end=55000,
+        size=100
+    )), row=2, col=1)
     fig.data[0].visible = True
     steps = []
     for i in range(len(fig.data)):
@@ -191,6 +196,7 @@ if __name__ == '__main__':
     start = time.time()
     x, deltas, k, xs = ls.solve_jacobi()
     plot_report(x, deltas, k, xs)
+
     end = time.time()
     temp = end - start
     hours = temp // 3600
@@ -199,35 +205,36 @@ if __name__ == '__main__':
     seconds = temp - 60 * minutes
     print("Execution time: '%d:%d:%d'" % (hours, minutes, seconds))
 
-    ls = LinearSystem.from_url(
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_2.txt",
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_2.txt"
-    )
-    print(f"Dimensiunea sistemului este {ls.a.n}")
-    x, deltas, k, xs = ls.solve_jacobi()
-    plot_report(x, deltas, k, xs)
+    # ls = LinearSystem.from_url(
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_2.txt",
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_2.txt"
+    # )
+    # print(f"Dimensiunea sistemului este {ls.a.n}")
+    # x, deltas, k, xs = ls.solve_jacobi()
+    # print("Gata")
+    # plot_report(x, deltas, k, xs)
 
-    ls = LinearSystem.from_url(
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt",
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt"
-    )
-    print(f"Dimensiunea sistemului este {ls.a.n}")
-    x, deltas, k, xs = ls.solve_jacobi()
-    plot_report(x, deltas, k, xs)
+    # ls = LinearSystem.from_url(
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_3.txt",
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_3.txt"
+    # )
+    # print(f"Dimensiunea sistemului este {ls.a.n}")
+    # x, deltas, k, xs = ls.solve_jacobi()
+    # plot_report(x, deltas, k, xs)
+    #
+    # ls = LinearSystem.from_url(
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_4.txt",
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_4.txt"
+    # )
+    # print(f"Dimensiunea sistemului este {ls.a.n}")
+    # x, deltas, k, xs = ls.solve_jacobi()
+    # plot_report(x, deltas, k, xs)
 
-    ls = LinearSystem.from_url(
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_4.txt",
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_4.txt"
-    )
-    print(f"Dimensiunea sistemului este {ls.a.n}")
-    x, deltas, k, xs = ls.solve_jacobi()
-    plot_report(x, deltas, k, xs)
-
-    ls = LinearSystem.from_url(
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_5.txt",
-        "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_5.txt"
-    )
-    print(f"Dimensiunea sistemului este {ls.a.n}")
-    x, deltas, k, xs = ls.solve_jacobi()
-    plot_report(x, deltas, k, xs)
-    print(x)
+    # ls = LinearSystem.from_url(
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/a_5.txt",
+    #     "http://profs.info.uaic.ro/~ancai/CN/lab/4/b_5.txt"
+    # )
+    # print(f"Dimensiunea sistemului este {ls.a.n}")
+    # x, deltas, k, xs = ls.solve_jacobi()
+    # plot_report(x, deltas, k, xs)
+    # print(x)
