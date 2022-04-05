@@ -24,8 +24,23 @@ def get_theta(A, p, q):
     s = t / np.sqrt(1 + t ** 2)
     return t, c, s
 
-def rotate(n,p,q,c,s):
-    pass
+
+def rotate(n, p, q, c, s):
+    R = [[0 for _ in range(0, n)] * n]
+    for i in range(0, n):
+        for j in range(0, n):
+            if i == j and i != p and i != q:
+                R[i][j] = 1
+            elif i == j and (i == p or i == q):
+                R[i][j] = c
+            elif i == p and j == q:
+                R[i][j] = s
+            elif i == q and j == p:
+                R[i][j] = -s
+            else:
+                R[i][j] = 0
+    return np.array(R)
+
 
 def check_matrix(A):
     n = len(A)
@@ -44,3 +59,6 @@ def jacobi_method(A):
     p, q = get_indexes(A)
     t, c, s = get_theta(A, p, q)
     A_init = copy.deepcopy(A)
+
+    while not check_matrix(A) and k<kmax:
+        R=rotate(len(A),p,q,c,s)
