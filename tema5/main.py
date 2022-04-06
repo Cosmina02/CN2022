@@ -1,4 +1,5 @@
 import copy
+import math
 
 import numpy as np
 
@@ -15,13 +16,14 @@ def get_indexes(A):
 
 
 def get_theta(A, p, q):
-    alfa = (A[p][p] - A[q][q]) / 2 * A[p][q]
+    alfa = (A[p][p] - A[q][q]) / (2 * A[p][q])
+    t=0
     if alfa >= 0:
-        t = -alfa + np.sqrt(pow(alfa,2) + 1)
+        t = -alfa + math.sqrt(pow(alfa,2) + 1)
     else:
-        t = -alfa - np.sqrt(pow(alfa,2) + 1)
-    c = 1 / np.sqrt(1 + pow(t, 2))
-    s = t / np.sqrt(1 + pow(t, 2))
+        t = -alfa - math.sqrt(pow(alfa,2) + 1)
+    c = 1 / math.sqrt(1 + pow(t, 2))
+    s = t / math.sqrt(1 + pow(t, 2))
     return t, c, s
 
 
@@ -80,6 +82,7 @@ def computeU(U, p, q, c, s):
 
 
 def jacobi_method(A):
+    eps=10**-15
     n = len(A)
     # print(n)
     kmax = 1000
@@ -90,14 +93,16 @@ def jacobi_method(A):
     t, c, s = get_theta(A, p, q)
     A_init = copy.deepcopy(A)
 
-    while not check_matrix(A) and k < kmax:
+    while abs(A[p][q])>eps and k < kmax:
         # R = rotate(len(A), p, q, c, s)
         A = computeA(A, t, c, s, p, q)
         # print("pas ",k,'\nA = ',A,'\nA_init = ', A_init)
         U = computeU(U, p, q, c, s)
         p, q = get_indexes(A)
         # print("p=", p, "\nq=", q)
-        t, c, s = get_theta(A, p, q)
+
+        if abs(A[p][q])>eps:
+            t, c, s = get_theta(A, p, q)
         k += 1
     return np.array(A), np.array(U)
 
