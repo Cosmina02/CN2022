@@ -1,6 +1,7 @@
 import copy
 import math
 
+import numpy
 import numpy as np
 
 
@@ -17,11 +18,11 @@ def get_indexes(A):
 
 def get_theta(A, p, q):
     alfa = (A[p][p] - A[q][q]) / (2 * A[p][q])
-    t=0
+    t = 0
     if alfa >= 0:
-        t = -alfa + math.sqrt(pow(alfa,2) + 1)
+        t = -alfa + math.sqrt(pow(alfa, 2) + 1)
     else:
-        t = -alfa - math.sqrt(pow(alfa,2) + 1)
+        t = -alfa - math.sqrt(pow(alfa, 2) + 1)
     c = 1 / math.sqrt(1 + pow(t, 2))
     s = t / math.sqrt(1 + pow(t, 2))
     return t, c, s
@@ -82,7 +83,7 @@ def computeU(U, p, q, c, s):
 
 
 def jacobi_method(A):
-    eps=10**-15
+    eps = 10 ** -15
     n = len(A)
     # print(n)
     kmax = 1000
@@ -93,7 +94,7 @@ def jacobi_method(A):
     t, c, s = get_theta(A, p, q)
     A_init = copy.deepcopy(A)
 
-    while abs(A[p][q])>eps and k < kmax:
+    while abs(A[p][q]) > eps and k < kmax:
         # R = rotate(len(A), p, q, c, s)
         A = computeA(A, t, c, s, p, q)
         # print("pas ",k,'\nA = ',A,'\nA_init = ', A_init)
@@ -101,14 +102,66 @@ def jacobi_method(A):
         p, q = get_indexes(A)
         # print("p=", p, "\nq=", q)
 
-        if abs(A[p][q])>eps:
+        if abs(A[p][q]) > eps:
             t, c, s = get_theta(A, p, q)
         k += 1
     return np.array(A), np.array(U)
+
+
+def eigen_sum(m1, m2):
+    our_eigenvalues = m1.diagonal()
+    library_eigenvalues = numpy.linalg.eigvals(np.array(m2))
+
+    suma = 0
+    for k in range(len(library_eigenvalues)):
+        min = float('+inf')
+        for i in range(len(our_eigenvalues)):
+            if abs(our_eigenvalues[i] - library_eigenvalues[k]) < min:
+                min = abs(our_eigenvalues[i] - library_eigenvalues[k])
+        suma += min
+    return suma
+
+
+def pseudo_inversa(A):
+    A = np.array(A)
+    A_J = numpy.linalg.inv(A.transpose() @ A) @ A.transpose()
+    print("A_J =", A_J)
+    return A_J
+
+
+def SVD(A):
+    U, S, Vt = numpy.linalg.svd(np.array(A))
+    valori_singulare = [i for i in S if i >= 0]
+    valori_singulare_nenule = [i for i in S if i > 0]
+    r = len(valori_singulare_nenule)
+
+    maxim = max(valori_singulare)
+    minim = min(valori_singulare_nenule)
+    nr_conditionare_A = maxim / minim
+    print(nr_conditionare_A)
+
+    SI = np.zeros((len(A[0]), len(A)))
+
+    for i in range(len(valori_singulare_nenule)):
+        SI[i][i] = 1 / valori_singulare_nenule[i]
+
+    PI_A = np.dot(np.dot(Vt.transpose(), SI), U.transpose())
+    print(PI_A)
+
+    A_J = pseudo_inversa(A)
+    norma = np.linalg.norm(PI_A - A_J)
+    print(norma)
 
 
 if __name__ == '__main__':
     A = [[0, 0, 1], [0, 0, 1], [1, 1, 1]]
     A_final, U_final = jacobi_method(A)
 
-    print(A_final, '\n', U_final)
+    # print(A_final, '\n\n', U_final)
+    eigenvalues = eigen_sum(A_final, A)
+
+    # print(eigenvalues)
+
+    A2 = [[0, 0, 1, 2], [0, 0, 1, 2], [1, 1, 3, 2]]
+    A2 = [[2, 0], [1, 2], [0, 1]]
+    SVD(A2)
