@@ -3,7 +3,34 @@ import math
 
 import numpy
 import numpy as np
+import plotly.graph_objects as go
 
+def plot_matrix_evolution(evo, title):
+    window_length = 1
+    fig = go.Figure()
+    for step in range(len(evo)):
+        fig.add_trace(go.Heatmap(z=evo[step][::-1],colorscale="RdBu",zmid=0))
+    fig.data[0].visible = True
+    steps = []
+    for i in range(len(fig.data)):
+        step = dict(
+            method="update",
+            args=[{"visible": [False] * len(fig.data)},
+                  {"title": title},
+                  ],
+            label=str(window_length * i))
+        step["args"][0]["visible"][i] = True
+        steps.append(step)
+
+    sliders = [dict(
+        active=0,
+        pad={"t": 5},
+        steps=steps
+    )]
+
+    fig.update_layout(sliders=sliders)
+
+    fig.show()
 
 def get_indexes(A):
     maxim = float('-inf')
@@ -93,10 +120,13 @@ def jacobi_method(A):
     # print("p=",p,"\nq=",q)
     t, c, s = get_theta(A, p, q)
     A_init = copy.deepcopy(A)
+    evolution=[]
+    evolution.append(A_init)
 
     while abs(A[p][q]) > eps and k < kmax:
         # R = rotate(len(A), p, q, c, s)
         A = computeA(A, t, c, s, p, q)
+        evolution.append(A)
         # print("pas ",k,'\nA = ',A,'\nA_init = ', A_init)
         U = computeU(U, p, q, c, s)
         p, q = get_indexes(A)
@@ -105,8 +135,8 @@ def jacobi_method(A):
         if abs(A[p][q]) > eps:
             t, c, s = get_theta(A, p, q)
         k += 1
+    plot_matrix_evolution(evolution,"Jacobi algorithm matrix evolution")
     return np.array(A), np.array(U)
-
 
 def eigen_sum(m1, m2):
     our_eigenvalues = m1.diagonal()
