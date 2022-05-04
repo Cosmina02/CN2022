@@ -46,7 +46,8 @@ def get_lagrange_interpolation(x_values, y_values):
     return new_x_values, new_y_values
 
 
-def generate_input():
+# f(x) = x^2 - 12x + 30
+def generate_input1():
     minim = 1
     maxim = 5
     n = 20
@@ -67,20 +68,48 @@ def generate_input():
     return x_values, y_values
 
 
-def plot_lagrange(x_values, y_values, new_x, new_y):
-    fig1 = px.scatter(x=x_values, y=y_values)
+# f(x) = sin(x) - cos(x)
+def generate_input2():
+    minim = 0
+    maxim = 1.5
+    n = 20
+    x_values = []
+    x_values.append(minim)
+    for i in range(n - 2):
+        if minim + 0.2 > maxim:
+            x_values.append(random.uniform(minim, maxim))
+        else:
+            x_values.append(random.uniform(minim, minim + 0.2))
+            minim += 0.2
+    x_values.append(maxim)
+    x_values.sort()
+    y_values = []
+    for i in x_values:
+        val = np.sin(i) - np.cos(i)
+        y_values.append(val)
+    return x_values, y_values
 
-    df = pd.DataFrame(dict(
-        x=new_x,
-        y=new_y
-    ))
 
-    fig2 = px.line(df, x="x", y="y")
-    fig2.update_traces(line=dict(color='rgba(220,20,60)'))
-    fig = go.Figure(data=fig1.data + fig2.data, layout=go.Layout(
-        title=go.layout.Title(text="Lagrange interpolation polynom")))
-
-    fig.show()
+# 2x^3 - 3x + 15
+def generate_input3():
+    minim = 0
+    maxim = 1.5
+    n = 20
+    x_values = []
+    x_values.append(minim)
+    for i in range(n - 2):
+        if minim + 0.2 > maxim:
+            x_values.append(random.uniform(minim, maxim))
+        else:
+            x_values.append(random.uniform(minim, minim + 0.2))
+            minim += 0.2
+    x_values.append(maxim)
+    x_values.sort()
+    y_values = []
+    for i in x_values:
+        val = 2 * (x ** 3) - 3 * x + 15
+        y_values.append(val)
+    return x_values, y_values
 
 
 def get_sum_b(x, p):
@@ -121,7 +150,7 @@ def least_square_poly_interpolation(x, y, m):
     res = np.linalg.solve(aux1, aux2)
     res = [i for i in res]
     res.reverse()
-    res=[res[i][0] for i in range(len(res))]
+    res = [res[i][0] for i in range(len(res))]
 
     return res
 
@@ -153,10 +182,33 @@ def get_lsp_aprox(x, y, p):
     return new_x, new_y
 
 
+def plot_aprox(x_values, y_values, new_x, new_y,title):
+    if "Lagrange" in title:
+        title1 = 'lagrange-aprox'
+    else:
+        title1 = 'lsp-aprox'
+
+    df1 = pd.DataFrame(dict(
+        old_x=x_values,
+        old_y=y_values,
+    ))
+    df2 = pd.DataFrame(dict(new_x=new_x,
+                            new_y=new_y))
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df1["old_x"], y=df1["old_y"], name='initial points', mode='markers'))
+    fig.add_trace(go.Scatter(x=df1["old_x"], y=df1["old_y"], name="Function", mode="lines"))
+    fig.add_trace(go.Scatter(x=df2["new_x"], y=df2["new_y"], name=title1, mode="lines"))
+    fig.update_layout(
+        title=title
+    )
+
+    fig.show()
+
+
 if __name__ == '__main__':
-    x_values, y_values = generate_input()
-    # new_x, new_y = get_lagrange_interpolation(x_values, y_values)
-    # plot_lagrange(x_values, y_values, new_x, new_y)
+    x_values, y_values = generate_input1()
+    new_x, new_y = get_lagrange_interpolation(x_values, y_values)
+    plot_aprox(x_values, y_values, new_x, new_y, 'Lagrange aproximation')
     x, y = get_lsp_aprox(x_values, y_values, 2)
-    print("x=",x,"\ny=",y)
-    # plot_lagrange(x_values, y_values, x, y)
+    print("x=", x, "\ny=", y)
+    plot_aprox(x_values, y_values, x, y, 'Lsp aprox')
